@@ -1069,6 +1069,24 @@ static void video_display2(FFPlayer *ffp)
         video_image_display2(ffp);
 }
 
+
+/**
+ * 用于获取特定时钟 Clock 的当前时间值（pts）。在音视频播放和同步中，获取准确的时间是非常重要的，以确保音频和视频的同步播放
+ *
+ * - *Clock* 结构体包含了时钟相关的状态信息，如队列序列号、暂停状态、时间戳等
+ * - *c->queue_serial != c->serial* 时钟与队列不同步，表明此时钟的值无效
+ *
+ * - *c->paused* 如果时钟处于暂停状态，函数直接返回 c->pts（显示时间戳），表示当前暂停时的时间点
+ *
+ * - av_gettime_relative(): 获取系统相对时间（单位为微秒），再除以 1000000.0 将其转换为秒。
+ * - c->pts_drift: 表示时钟的时间戳偏移（drift）。这是一个常数值，通常是 pts 减去在特定时间点的系统时间。
+ * - time: 当前系统时间。
+ * - c->last_updated: 记录了最后一次更新时间的系统时间。
+ *
+ * - c->speed: 播放速度，可以用于调整播放速度（例如加速或减速）。
+ * - 如果 speed 是 1.0，表示正常速度，这部分结果为零。如果 speed 不等于 1.0，则调整时钟以匹配指定的速度
+ *
+ */
 static double get_clock(Clock *c)
 {
     if (*c->queue_serial != c->serial)
@@ -1113,8 +1131,9 @@ static void sync_clock_to_slave(Clock *c, Clock *slave)
 {
     double clock = get_clock(c);
     double slave_clock = get_clock(slave);
-    if (!isnan(slave_clock) && (isnan(clock) || fabs(clock - slave_clock) > AV_NOSYNC_THRESHOLD))
+    if (!isnan(slave_clock) && (isnan(clock) || fabs(clock - slave_clock) > AV_NOSYNC_THRESHOLD)) {
         set_clock(c, slave_clock, slave->serial);
+    }
 }
 
 static int get_master_sync_type(VideoState *is) {

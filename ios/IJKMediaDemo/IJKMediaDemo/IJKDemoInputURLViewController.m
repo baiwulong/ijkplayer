@@ -37,6 +37,10 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+//    self.textView.text = @"rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov";
+    //    self.textView.text = @"https://v-cdn.zjol.com.cn/276985.mp4";
+    self.textView.text = @"rtmp://58.200.131.2:1935/livetv/cctv1";
+
 }
 
 - (void)onClickPlayButton {
@@ -45,6 +49,7 @@
     
     if ([scheme isEqualToString:@"http"]
         || [scheme isEqualToString:@"https"]
+        || [scheme isEqualToString:@"rtsp"]
         || [scheme isEqualToString:@"rtmp"]) {
         [IJKVideoViewController presentFromViewController:self withTitle:[NSString stringWithFormat:@"URL: %@", url] URL:url completion:^{
 //            [self.navigationController popViewControllerAnimated:NO];
